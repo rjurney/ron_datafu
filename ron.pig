@@ -4,6 +4,7 @@ REGISTER /me/Software/datafu/dist/datafu-0.0.9-SNAPSHOT.jar
 
 DEFINE HCatLoader org.apache.hcatalog.pig.HCatLoader();
 DEFINE CustomFormatToISO org.apache.pig.piggybank.evaluation.datetime.convert.CustomFormatToISO();
+DEFINE ISOToDay org.apache.pig.piggybank.evaluation.datetime.truncate.ISOToDay();
 DEFINE Sessionize datafu.pig.sessions.Sessionize('30m');
 
 /*logs = LOAD 'febweblog' using org.apache.hcatalog.pig.HCatLoader();
@@ -24,9 +25,10 @@ logs = LOAD 'Feb2013.csv' using PigStorage(',') as (ip,
                                                     user_agent);
 
                          
-iso_times = foreach logs GENERATE StringConcat(CustomFormatToISO(date, 'dd/MMM/YYYY'), 'T', time) as date, 
+iso_times = foreach logs GENERATE StringConcat(SUBSTRING(CustomFormatToISO(date, 'dd/MMM/YYYY'), 0, 11), time) as date, 
                                   StringConcat(ip, ' ', user_agent) as user_id,
                                   path;
+store iso_times into '/tmp/iso_times';
                                  
 sessions = foreach (group iso_times by user_id) {
   visits = order iso_times by date;
